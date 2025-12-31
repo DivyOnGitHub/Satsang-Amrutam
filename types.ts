@@ -1,3 +1,4 @@
+
 export enum UserRole {
   DEVOTEE = 'DEVOTEE',
   ADMIN = 'ADMIN'
@@ -11,12 +12,11 @@ export enum Language {
 export interface MediaItem {
   id: string;
   title: string;
-  artist?: string;
+  artist?: string; // Optional field
   type: 'bhajan';
   uploader: string;
   timestamp: number;
   lyrics: string;
-  isShared?: boolean;
 }
 
 export interface CommunityEvent {

@@ -1,3 +1,4 @@
+
 import { Language } from '../types';
 
 export const translations = {
@@ -5,7 +6,6 @@ export const translations = {
     appName: "Satsang Amrutam",
     home: "Home",
     bhajans: "Bhajans",
-    bhajansSub: "Kirtan Bhakti - Divine nectar for the soul",
     community: "Upcoming Events",
     guru: "Satsang Saar",
     adminMode: "Admin Mode",
@@ -48,6 +48,7 @@ export const translations = {
     read: "Read Vachan",
     paad: "Paad",
     jumpTo: "Jump to Verse",
+    lateArrival: "Joined late? Jump to verse:",
     translateToGU: "See in Gujarati",
     originalLang: "Original Text",
     translating: "Translating...",
@@ -59,17 +60,12 @@ export const translations = {
     enterAdminPin: "Enter Divine Access Key",
     invalidPin: "Access Denied: Incorrect Key",
     verify: "Verify Access",
-    adminAuthTitle: "Administrative Authorization",
-    communityLinkActive: "Divine Sharing Active",
-    communityLinkDesc: "Share your bhajans via link to show them to others.",
-    newSharedBhajan: "New Divine Share Added",
-    shareLink: "Share Divine Link"
+    adminAuthTitle: "Administrative Authorization"
   },
   [Language.GU]: {
     appName: "સત્સંગ અમૃતમ",
     home: "હોમ",
     bhajans: "ભજન",
-    bhajansSub: "કીર્તન ભક્તિ - આત્મા માટે અમૃત",
     community: "આગામી કાર્યક્રમો",
     guru: "સત્સંગ સાર",
     adminMode: "એડમિન મોડ",
@@ -112,6 +108,7 @@ export const translations = {
     read: "વાંચો",
     paad: "પદ",
     jumpTo: "પદ પર જાઓ",
+    lateArrival: "મોડા આવ્યા? પદ પસંદ કરો:",
     translateToGU: "ગુજરાતીમાં જુઓ",
     originalLang: "મૂળ લખાણ",
     translating: "ભાષાંતર થઈ રહ્યું છે...",
@@ -123,10 +120,6 @@ export const translations = {
     enterAdminPin: "દૈવી પ્રવેશ કી દાખલ કરો",
     invalidPin: "પ્રવેશ નકારવામાં આવ્યો: ખોટી કી",
     verify: "ચકાસો",
-    adminAuthTitle: "વહીવટી અધિકૃતતા",
-    communityLinkActive: "દૈવી શેરિંગ સક્રિય",
-    communityLinkDesc: "તમારા ભજન અન્યને બતાવવા માટે લિંક શેર કરો.",
-    newSharedBhajan: "નવું ભજન ઉમેરાયું",
-    shareLink: "લિંક શેર કરો"
+    adminAuthTitle: "વહીવટી અધિકૃતતા"
   }
 };
