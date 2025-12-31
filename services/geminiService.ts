@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { Language } from "../types";
 
 export interface FilePart {
@@ -14,11 +14,6 @@ This is the supreme spiritual text of the Swaminarayan Sampraday.
 [STRUCTURE]
 Sections: Gadhadã I, Sãrangpur, Kãriyãni, Loyã, Panchãlã, Gadhadã II, Vartãl, Amdãvãd, Gadhadã III.
 Total Discourses: 273.
-
-[PHILOSOPHY]
-- Concept of Akshar-Purushottam Upasana.
-- The path to liberation (Moksha) through Dharma, Gnan, Vairagya, and Bhakti.
-- The importance of the manifest Satpurush as the gateway to God.
 `;
 
 export class GeminiService {
@@ -32,8 +27,36 @@ export class GeminiService {
       } catch (e) {
         console.error("Failed to initialize Gemini AI:", e);
       }
-    } else {
-      console.warn("API_KEY not found in process.env. Ensure it's defined in Vite config.");
+    }
+  }
+
+  async generateCommunityBhajan(language: Language) {
+    if (!this.ai) return null;
+    try {
+      const target = language === Language.GU ? "Gujarati" : "English";
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Act as a spiritual devotee. Generate a short, beautiful, and authentic original bhajan about Bhagwan Swaminarayan or the Vachanamrut. 
+        Respond in JSON format with 'title', 'artist' (a generic devotee name like 'A Devotee from Rajkot'), and 'lyrics'.
+        The language must be ${target}.`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              artist: { type: Type.STRING },
+              lyrics: { type: Type.STRING },
+            },
+            required: ["title", "artist", "lyrics"],
+          },
+          temperature: 0.9,
+        }
+      });
+      return JSON.parse(response.text);
+    } catch (error) {
+      console.error("Global Feed Error:", error);
+      return null;
     }
   }
 
@@ -44,73 +67,31 @@ export class GeminiService {
     attachedFile?: FilePart
   ) {
     if (!this.ai) {
-      return language === Language.GU 
-        ? "ક્ષમા કરશો, અત્યારે જોડાણ થઈ શકતું નથી (API કી ખૂટે છે)."
-        : "I am unable to connect to the divine volumes at this moment (API Key missing).";
+      return language === Language.GU ? "API કી ખૂટે છે." : "API Key missing.";
     }
 
     try {
       const userParts: any[] = [{ text: prompt }];
-      
       if (attachedFile) {
-        userParts.unshift({
-          inlineData: {
-            data: attachedFile.data,
-            mimeType: attachedFile.mimeType
-          }
-        });
+        userParts.unshift({ inlineData: { data: attachedFile.data, mimeType: attachedFile.mimeType } });
       }
-
-      const langInstruction = language === Language.GU 
-        ? "Respond strictly in GUJARATI. Cite using [વિભાગ-નંબર]."
-        : "Respond strictly in ENGLISH. Cite using [Section-Number].";
 
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-pro-preview', 
-        contents: [
-            ...history,
-            { role: 'user', parts: userParts }
-        ],
+        contents: [...history, { role: 'user', parts: userParts }],
         config: {
           systemInstruction: `You are the "Satsang Saar AI", a digital librarian for the Vachanãmrut.
-          
           PRIMARY SOURCE: ${VACHANAMRUT_CORE}
-          
           STRICT RULES:
           1. Only use the Vachanãmrut as your primary authority.
-          2. Always provide a citation at the end of each paragraph.
-          3. Use a respectful, divine, and calm tone.
-          4. If a user asks for something unrelated to spiritual life or the Vachanãmrut, politely guide them back to the spiritual path.
-          
-          ${langInstruction}`,
+          2. Always provide a citation.
+          3. Tone: Divine and calm.`,
           temperature: 0.2,
         },
       });
-
       return response.text;
     } catch (error) {
-      console.error("Gemini API Error:", error);
-      return language === Language.GU 
-        ? "ક્ષમા કરશો, અત્યારે જોડાણ થઈ શકતું નથી."
-        : "I am unable to connect to the divine volumes at this moment. Please try again.";
-    }
-  }
-
-  async translateBhajan(text: string, targetLanguage: Language) {
-    if (!this.ai) return null;
-    try {
-      const target = targetLanguage === Language.GU ? "Gujarati" : "English";
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Translate the following sacred bhajan into poetic ${target}. Maintain the verse structure (double line breaks between verses). Keep it spiritual and respectful.\n\nText:\n${text}`,
-        config: {
-          temperature: 0.3,
-        }
-      });
-      return response.text;
-    } catch (error) {
-      console.error("Translation Error:", error);
-      return null;
+      return "Unable to connect at this moment.";
     }
   }
 
@@ -119,14 +100,11 @@ export class GeminiService {
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Transliterate the following bhajan text into ${targetScript} script. This is NOT a translation of meaning, only a change of the writing script so someone can recite it. If original is English, change to Gujarati characters. If original is Gujarati, change to Romanized English characters. Maintain verse structure.\n\nText:\n${text}`,
-        config: {
-          temperature: 0.1,
-        }
+        contents: `Transliterate into ${targetScript}: ${text}`,
+        config: { temperature: 0.1 }
       });
       return response.text;
     } catch (error) {
-      console.error("Transliteration Error:", error);
       return null;
     }
   }
