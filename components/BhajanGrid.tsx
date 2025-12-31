@@ -2,7 +2,6 @@
 import React from 'react';
 import { MediaItem, Language, UserRole } from '../types';
 import { translations } from '../utils/translations';
-import { geminiService } from '../services/geminiService';
 
 interface BhajanGridProps {
   items: MediaItem[];
@@ -15,8 +14,6 @@ interface BhajanGridProps {
 const BhajanGrid: React.FC<BhajanGridProps> = ({ items, language, role, onDelete, onEdit }) => {
   const t = translations[language];
   const [selectedItem, setSelectedItem] = React.useState<MediaItem | null>(null);
-  const [isTransliterating, setIsTransliterating] = React.useState(false);
-  const [transliteration, setTransliteration] = React.useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
   
   const filteredItems = items.filter(item => 
@@ -48,7 +45,6 @@ const BhajanGrid: React.FC<BhajanGridProps> = ({ items, language, role, onDelete
                 <div className="min-w-0">
                   <h3 className="font-serif font-bold text-2xl text-orange-900 leading-tight truncate">{item.title}</h3>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {item.fromCloud && <span className="text-[8px] font-black bg-green-50 text-green-600 px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-100">Live From Sangha</span>}
                     {item.isGlobal && <span className="text-[8px] font-black bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full uppercase tracking-widest border border-blue-100">Global Librarian</span>}
                   </div>
                 </div>

@@ -4,13 +4,8 @@ import Layout from './components/Layout';
 import BhajanGrid from './components/BhajanGrid';
 import CommunityTab from './components/CommunityTab';
 import AIGuru from './components/AIGuru';
-import { MediaItem, CommunityEvent, UserRole, Notification, Language, SanghaData } from './types';
+import { MediaItem, CommunityEvent, UserRole, Notification, Language } from './types';
 import { translations } from './utils/translations';
-import { geminiService } from './services/geminiService';
-import { cloudService } from './services/cloudService';
-
-// This is the universal channel for all Satsang Amrutam devotees worldwide.
-const UNIVERSAL_SANGHA_ID = "f8b667e671761e018695"; 
 
 const STORAGE_KEYS = {
   MEDIA: 'satsang_amrutam_media',
@@ -41,8 +36,6 @@ const App: React.FC = () => {
   const [showUpload, setShowUpload] = React.useState(false);
   const [editingBhajan, setEditingBhajan] = React.useState<MediaItem | null>(null);
   const [showToast, setShowToast] = React.useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = React.useState(false);
-  const [lastSyncTime, setLastSyncTime] = React.useState<number>(0);
 
   const t = translations[language];
 
@@ -55,68 +48,6 @@ const App: React.FC = () => {
     localStorage.setItem(STORAGE_KEYS.NOTIFS, JSON.stringify(notifications));
   }, [media, events, role, language, notifications]);
 
-  // --- SYNC ENGINE ---
-  const performSync = async (forcePush: boolean = false) => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    
-    try {
-      const remoteData = await cloudService.fetchFromSangha(UNIVERSAL_SANGHA_ID);
-      
-      if (remoteData) {
-        // Advanced Merge: Combine local and remote without losing new additions
-        const mergedMediaMap = new Map<string, MediaItem>();
-        media.forEach(m => mergedMediaMap.set(m.id, m));
-        remoteData.media.forEach(rm => {
-          const local = mergedMediaMap.get(rm.id);
-          if (!local || rm.timestamp > local.timestamp) {
-            mergedMediaMap.set(rm.id, { ...rm, fromCloud: true });
-          }
-        });
-        const finalMedia = Array.from(mergedMediaMap.values()).sort((a, b) => b.timestamp - a.timestamp);
-        setMedia(finalMedia);
-
-        const mergedEventMap = new Map<string, CommunityEvent>();
-        events.forEach(e => mergedEventMap.set(e.id, e));
-        remoteData.events.forEach(re => {
-          const local = mergedEventMap.get(re.id);
-          if (!local || re.timestamp > local.timestamp) {
-            mergedEventMap.set(re.id, re);
-          }
-        });
-        const finalEvents = Array.from(mergedEventMap.values()).sort((a, b) => b.timestamp - a.timestamp);
-        setEvents(finalEvents);
-
-        // If we just added something locally (forcePush) or the cloud was missing some local items, push the merged state back
-        if (forcePush || finalMedia.length > remoteData.media.length || finalEvents.length > remoteData.events.length) {
-          await cloudService.pushToSangha(UNIVERSAL_SANGHA_ID, {
-            media: finalMedia,
-            events: finalEvents,
-            lastUpdated: Date.now()
-          });
-        }
-        setLastSyncTime(Date.now());
-      } else {
-        // If cloud is empty/404, initialize it with current local data
-        await cloudService.pushToSangha(UNIVERSAL_SANGHA_ID, {
-          media,
-          events,
-          lastUpdated: Date.now()
-        });
-      }
-    } catch (e) {
-      console.error("Sangha sync failed", e);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  React.useEffect(() => {
-    performSync(); // Initial sync
-    const interval = setInterval(() => performSync(), 30000);
-    return () => clearInterval(interval);
-  }, []);
-
   const addNotification = (message: string, type: Notification['type']) => {
     const newNotif: Notification = { id: Math.random().toString(36).substr(2, 9), message, timestamp: Date.now(), isRead: false, type };
     setNotifications(prev => [newNotif, ...prev]);
@@ -124,7 +55,6 @@ const App: React.FC = () => {
     setTimeout(() => setShowToast(null), 5000);
   };
 
-  // Fix: Completed handleUploadSubmit with missing timestamp and lyrics properties
   const handleUploadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -148,7 +78,6 @@ const App: React.FC = () => {
     
     setShowUpload(false);
     setEditingBhajan(null);
-    performSync(true); // Push new data
   };
 
   const onMarkRead = (id: string) => {
@@ -167,17 +96,14 @@ const App: React.FC = () => {
     };
     setEvents(prev => [newEvent, ...prev]);
     addNotification(t.addEvent, 'event');
-    performSync(true);
   };
 
   const handleDeleteEvent = (id: string) => {
     setEvents(prev => prev.filter(e => e.id !== id));
-    performSync(true);
   };
 
   const handleDeleteBhajan = (id: string) => {
     setMedia(prev => prev.filter(m => m.id !== id));
-    performSync(true);
   };
 
   return (
@@ -199,7 +125,7 @@ const App: React.FC = () => {
              <div className="absolute inset-0 bg-gradient-to-br from-orange-900/90 via-orange-800/80 to-orange-600/60 z-10"></div>
              <img src="https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=2070&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Sacred" />
              <div className="relative z-20 h-full flex flex-col items-center justify-center text-center p-8">
-               <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-5xl mb-8 shadow-inner border border-white/30 animate-float">🪔</div>
+               <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-5xl mb-8 shadow-inner border border-white/30">🪔</div>
                <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 drop-shadow-lg">{t.heroTitle}</h2>
                <p className="text-orange-100 max-w-2xl font-serif italic text-lg md:text-xl leading-relaxed opacity-90">{t.heroSubtitle}</p>
              </div>
@@ -333,23 +259,14 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Sync Toast */}
+      {/* Local Action Toast */}
       {showToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-orange-900 text-white px-6 py-3 rounded-2xl shadow-2xl z-[200] flex items-center gap-3 animate-slideUp">
-           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
            <span className="text-xs font-bold uppercase tracking-widest">{showToast}</span>
         </div>
       )}
-
-      {/* Sync Indicator */}
-      <div className="fixed bottom-6 right-6 z-[200]">
-        <div className={`p-2 rounded-full shadow-lg ${isSyncing ? 'bg-orange-600 text-white animate-spin' : 'bg-white text-orange-600'}`}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-        </div>
-      </div>
     </Layout>
   );
 };
 
-// Fix: Added missing default export for App component
 export default App;

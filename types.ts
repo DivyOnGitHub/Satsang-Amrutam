@@ -18,8 +18,7 @@ export interface MediaItem {
   timestamp: number;
   lyrics: string;
   isGlobal?: boolean; 
-  isShared?: boolean; 
-  fromCloud?: boolean; // Indicates the item was synced from another device
+  isShared?: boolean;
 }
 
 export interface CommunityEvent {
@@ -47,6 +46,7 @@ export interface ChatMessage {
   text: string;
 }
 
+// Added SanghaData interface to resolve module export error in cloudService.ts
 export interface SanghaData {
   media: MediaItem[];
   events: CommunityEvent[];
