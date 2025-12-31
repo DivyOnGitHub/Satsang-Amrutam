@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Language } from "../types";
 
@@ -23,10 +22,19 @@ Total Discourses: 273.
 `;
 
 export class GeminiService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (apiKey) {
+      try {
+        this.ai = new GoogleGenAI({ apiKey });
+      } catch (e) {
+        console.error("Failed to initialize Gemini AI:", e);
+      }
+    } else {
+      console.warn("API_KEY not found in process.env. Ensure it's defined in Vite config.");
+    }
   }
 
   async getSpiritualGuidance(
@@ -35,6 +43,12 @@ export class GeminiService {
     history: { role: 'user' | 'model', parts: { text: string }[] }[] = [],
     attachedFile?: FilePart
   ) {
+    if (!this.ai) {
+      return language === Language.GU 
+        ? "ક્ષમા કરશો, અત્યારે જોડાણ થઈ શકતું નથી (API કી ખૂટે છે)."
+        : "I am unable to connect to the divine volumes at this moment (API Key missing).";
+    }
+
     try {
       const userParts: any[] = [{ text: prompt }];
       
@@ -83,6 +97,7 @@ export class GeminiService {
   }
 
   async translateBhajan(text: string, targetLanguage: Language) {
+    if (!this.ai) return null;
     try {
       const target = targetLanguage === Language.GU ? "Gujarati" : "English";
       const response = await this.ai.models.generateContent({
@@ -100,6 +115,7 @@ export class GeminiService {
   }
 
   async transliterateBhajan(text: string, targetScript: 'Latin' | 'Gujarati') {
+    if (!this.ai) return null;
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-flash-preview',
