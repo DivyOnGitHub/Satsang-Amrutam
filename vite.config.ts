@@ -1,23 +1,23 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  build: {
+    // Increases the chunk size limit to 1000kb to silence the warning during Vercel builds
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        // Split vendor modules into a separate chunk for better caching and smaller main bundles
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        },
       },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+    },
+  },
+  // This ensures the process.env.API_KEY is available in the browser after the Vite build
+  define: {
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
+  }
 });
