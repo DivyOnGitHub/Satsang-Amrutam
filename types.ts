@@ -17,8 +17,9 @@ export interface MediaItem {
   uploader: string;
   timestamp: number;
   lyrics: string;
-  isGlobal?: boolean; // Flag for content from the simulated community cloud
-  isShared?: boolean; // Flag for content received via a shared link
+  isGlobal?: boolean; 
+  isShared?: boolean; 
+  fromCloud?: boolean; // Indicates the item was synced from another device
 }
 
 export interface CommunityEvent {
@@ -30,6 +31,7 @@ export interface CommunityEvent {
   location: string;
   organizer: string;
   isGlobal?: boolean;
+  timestamp: number;
 }
 
 export interface Notification {
@@ -43,4 +45,10 @@ export interface Notification {
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
+}
+
+export interface SanghaData {
+  media: MediaItem[];
+  events: CommunityEvent[];
+  lastUpdated: number;
 }
