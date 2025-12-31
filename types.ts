@@ -12,11 +12,13 @@ export enum Language {
 export interface MediaItem {
   id: string;
   title: string;
-  artist?: string; // Optional field
+  artist?: string;
   type: 'bhajan';
   uploader: string;
   timestamp: number;
   lyrics: string;
+  isGlobal?: boolean; // Flag for content from the simulated community cloud
+  isShared?: boolean; // Flag for content received via a shared link
 }
 
 export interface CommunityEvent {
@@ -27,6 +29,7 @@ export interface CommunityEvent {
   time: string;
   location: string;
   organizer: string;
+  isGlobal?: boolean;
 }
 
 export interface Notification {
