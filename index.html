@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Satsang Amrutam - Your Spiritual Companion</title>
+  <title>Pragat Purushottam Satsang</title>
+  <link rel="icon" type="image/jpg" href="https://i.ibb.co/Kjc6Xkdv/Whats-App-Image-2026-01-01-at-10-28-40-PM.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <style>
@@ -13,6 +15,14 @@
     }
     .font-serif {
       font-family: 'Playfair Display', serif;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    .animate-float {
+      animation: float 4s ease-in-out infinite;
     }
     @keyframes scaleIn {
       from { transform: scale(0.95); opacity: 0; }
@@ -27,13 +37,6 @@
     }
     .animate-fadeIn {
       animation: fadeIn 0.4s ease-out forwards;
-    }
-    @keyframes slideDown {
-      from { transform: translate(-50%, -20px); opacity: 0; }
-      to { transform: translate(-50%, 0); opacity: 1; }
-    }
-    .animate-slideDown {
-      animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 <script type="importmap">

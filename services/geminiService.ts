@@ -14,20 +14,14 @@ This is the supreme spiritual text of the Swaminarayan Sampraday.
 It contains 273 discourses recorded by four senior paramhansas.
 `;
 
-export class GeminiService {
-  // Use a getter to ensure GoogleGenAI is initialized correctly using process.env.API_KEY
-  private get ai() {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) return null;
-    return new GoogleGenAI({ apiKey });
-  }
+// Initialize the AI client directly using the environment variable as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+export class GeminiService {
   async generateCommunityContent(language: Language) {
-    const aiClient = this.ai;
-    if (!aiClient) return null;
     try {
       const target = language === Language.GU ? "Gujarati" : "English";
-      const response = await aiClient.models.generateContent({
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Act as a spiritual community librarian. Generate one authentic original bhajan. 
         Respond in JSON with 'title', 'artist' (e.g. 'Devotee from Ahmedabad'), and 'lyrics'.
@@ -45,7 +39,6 @@ export class GeminiService {
           }
         }
       });
-      // Extract generated text directly from response.text property
       return JSON.parse(response.text || '{}');
     } catch (error) {
       console.error("Gemini generateCommunityContent error:", error);
@@ -54,10 +47,8 @@ export class GeminiService {
   }
 
   async getSpiritualGuidance(prompt: string, language: Language, history: any[] = [], attachedFile?: FilePart) {
-    const aiClient = this.ai;
-    if (!aiClient) return "API Key missing.";
     try {
-      // Correctly build user parts to include prompt text and potential file data
+      // Correctly build user parts
       const userParts: any[] = [{ text: prompt }];
       if (attachedFile) {
         userParts.push({
@@ -68,35 +59,39 @@ export class GeminiService {
         });
       }
 
-      const response = await aiClient.models.generateContent({
+      // Gemini API history MUST start with a 'user' role message.
+      // We filter out any initial 'model' greetings from the history array.
+      const validHistory = history.filter((msg, index) => {
+        if (index === 0 && msg.role === 'model') return false;
+        return true;
+      });
+
+      const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview', 
-        contents: [...history, { role: 'user', parts: userParts }],
+        contents: [...validHistory, { role: 'user', parts: userParts }],
         config: {
-          systemInstruction: `Satsang Saar AI. Use Vachanãmrut authority. ${VACHANAMRUT_CORE} Provide guidance based on these discourses.`,
-          temperature: 0.2,
+          systemInstruction: `Satsang Saar AI. You are the Librarian of the Vachanãmrut. Use Vachanãmrut authority. ${VACHANAMRUT_CORE} Provide guidance based on these 273 discourses. Always use precise citations.`,
+          temperature: 0.3,
         },
       });
-      // Extract generated text directly from response.text property
-      return response.text || "I apologize, but I couldn't generate a response.";
+
+      return response.text || "I apologize, but I couldn't generate a spiritual response at this moment.";
     } catch (error) {
-      console.error("Gemini getSpiritualGuidance error:", error);
-      return "Unable to connect to the spiritual advisor at this time.";
+      console.error("Gemini API Error:", error);
+      return "The connection to the spiritual archives was interrupted. Please ensure your environment is correctly configured.";
     }
   }
 
   async transliterateBhajan(text: string, targetScript: 'Latin' | 'Gujarati') {
-    const aiClient = this.ai;
-    if (!aiClient) return null;
     try {
-      const response = await aiClient.models.generateContent({
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Transliterate the following text into ${targetScript} script: ${text}`,
         config: { temperature: 0.1 }
       });
-      // Extract generated text directly from response.text property
       return response.text || null;
     } catch (error) {
-      console.error("Gemini transliterateBhajan error:", error);
+      console.error("Transliteration error:", error);
       return null;
     }
   }

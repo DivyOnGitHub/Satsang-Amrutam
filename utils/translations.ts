@@ -1,9 +1,8 @@
-
 import { Language } from '../types';
 
 export const translations = {
   [Language.EN]: {
-    appName: "Satsang Amrutam",
+    appName: "Pragat Purushottam Satsang",
     home: "Home",
     bhajans: "Bhajans",
     community: "Upcoming Events",
@@ -63,7 +62,7 @@ export const translations = {
     adminAuthTitle: "Administrative Authorization"
   },
   [Language.GU]: {
-    appName: "સત્સંગ અમૃતમ",
+    appName: "પ્રગટ પુરુષોત્તમ સત્સંગ",
     home: "હોમ",
     bhajans: "ભજન",
     community: "આગામી કાર્યક્રમો",

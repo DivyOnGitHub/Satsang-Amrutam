@@ -1,11 +1,12 @@
+
 import React from 'react';
 import { UserRole, Notification, Language } from '../types';
 import { translations } from '../utils/translations';
+import Logo from './Logo';
 
 const SECRET_ADMIN_PIN = "1954"; 
 
 interface LayoutProps {
-  // Fix: Changed React.Node to React.ReactNode
   children: React.ReactNode;
   role: UserRole;
   setRole: (role: UserRole) => void;
@@ -63,12 +64,8 @@ const Layout: React.FC<LayoutProps> = ({
     <div className="min-h-screen flex flex-col bg-[#fffaf0]">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 px-4 py-3 flex items-center justify-between border-b border-orange-100">
-        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setActiveTab('home')}>
-          <div className="bg-orange-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-orange-200">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 21l-8.228-3.352a.5.5 0 01-.272-.447V5.51a.5.5 0 01.728-.447L12 8.352l7.772-3.289a.5.5 0 01.728.447v11.691a.5.5 0 01-.272.447L12 21z" />
-            </svg>
-          </div>
+        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setActiveTab('home')}>
+          <Logo size="md" className="group-hover:rotate-6 transition-transform" />
           <h1 className="text-xl md:text-2xl font-serif font-bold text-orange-900 tracking-tight">{t.appName}</h1>
         </div>
 
@@ -154,56 +151,6 @@ const Layout: React.FC<LayoutProps> = ({
         </div>
       </header>
 
-      {/* Admin Verification Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-orange-950/20 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl border border-orange-100 animate-scaleIn">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-orange-100 rounded-3xl rotate-3 flex items-center justify-center mx-auto mb-6 text-orange-600 shadow-inner">
-                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-serif font-bold text-orange-900">{t.adminAuthTitle}</h2>
-              <p className="text-gray-400 text-xs mt-2 font-medium">{t.enterAdminPin}</p>
-            </div>
-            <form onSubmit={handleVerify} className="space-y-6">
-              <div>
-                <input 
-                  type="password"
-                  value={pin}
-                  onChange={(e) => {
-                    setPin(e.target.value);
-                    setError(false);
-                  }}
-                  autoFocus
-                  className={`w-full px-4 py-5 text-center text-3xl tracking-[1em] font-black bg-orange-50 border-2 ${error ? 'border-red-500 animate-shake' : 'border-orange-100'} rounded-3xl focus:outline-none focus:border-orange-500 transition-all`}
-                  placeholder="••••"
-                />
-                {error && <p className="text-red-500 text-[10px] font-black text-center mt-3 uppercase tracking-widest">{t.invalidPin}</p>}
-              </div>
-              <div className="flex gap-4">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setShowAuthModal(false);
-                  }}
-                  className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-200 transition-colors"
-                >
-                  {t.cancel}
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 py-4 bg-orange-600 text-white rounded-2xl font-bold hover:bg-orange-700 shadow-xl active:scale-95 transition-all"
-                >
-                  {t.verify}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 pb-24 lg:px-8">
         {children}
@@ -220,7 +167,6 @@ const Layout: React.FC<LayoutProps> = ({
   );
 };
 
-// Fix: Changed icon: React.Node to icon: React.ReactNode
 const NavItem = ({ active, onClick, label, icon }: { active: boolean, onClick: () => void, label: string, icon: React.ReactNode }) => (
   <button 
     onClick={onClick}
