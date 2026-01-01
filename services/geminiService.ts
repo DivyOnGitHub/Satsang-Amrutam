@@ -16,9 +16,10 @@ It contains 273 discourses recorded by four senior paramhansas.
 
 export class GeminiService {
   private getClient() {
-    // The API key is obtained from the environment.
-    const apiKey = process.env.API_KEY;
-    return new GoogleGenAI({ apiKey: apiKey || "" });
+    // Accessing process.env.API_KEY directly as per guidelines.
+    // If the error 401 persists, it indicates the key itself is invalid 
+    // or not being injected correctly by the hosting environment.
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   async generateCommunityContent(language: Language) {
@@ -65,19 +66,21 @@ export class GeminiService {
         });
       }
 
-      // Filter history to ensure strict alternation: user -> model -> user...
-      // The API requires the sequence to start with 'user'.
+      // History Validation: Strict user -> model alternation
       const validHistory = [];
       let nextRole = 'user';
       
       for (const turn of history) {
         if (turn.role === nextRole) {
-          validHistory.push(turn);
+          validHistory.push({
+            role: turn.role,
+            parts: turn.parts || [{ text: turn.text }]
+          });
           nextRole = nextRole === 'user' ? 'model' : 'user';
         }
       }
 
-      // If validHistory ends with a 'user' message, we remove it because the current turn is 'user'
+      // Ensure history ends on model to alternate with our current user turn
       if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
         validHistory.pop();
       }
@@ -91,23 +94,22 @@ export class GeminiService {
         },
       });
 
-      if (!response.text) {
-        throw new Error("The model returned an empty response.");
-      }
-
-      return response.text;
+      return response.text || "The model returned an empty guidance. Please rephrase your query.";
     } catch (error: any) {
-      console.error("Gemini Detailed Error:", error);
-      
-      // If the error message is available, show it for debugging, otherwise use categorized fallbacks
+      console.error("Satsang AI Error:", error);
       const msg = error?.message || "";
       
-      if (msg.includes("401") || msg.includes("key")) return "Unauthorized (401): The spiritual archives require a valid API key in the environment configuration.";
-      if (msg.includes("403")) return "Forbidden (403): Access is restricted for this model in your current region.";
-      if (msg.includes("429")) return "Rate Limited (429): The archives are currently busy. Please wait a moment.";
-      if (msg.includes("500")) return "Server Error (500): The Google AI service is experiencing internal issues.";
-      
-      return `Connection Issue: ${msg || "Consultation interrupted. Please verify your network and check the browser console for details."}`;
+      if (msg.includes("401")) {
+        return "Unauthorized (401): The connection to the spiritual archives (API Key) is invalid. Please check your environment configuration.";
+      }
+      if (msg.includes("429")) {
+        return "Too Many Requests (429): Many devotees are consulting the Guru right now. Please wait a moment.";
+      }
+      if (msg.includes("API_KEY_INVALID")) {
+        return "The provided API Key is not authorized for this service.";
+      }
+
+      return `Spiritual archives are currently unreachable. (Details: ${msg || "Unknown error"})`;
     }
   }
 

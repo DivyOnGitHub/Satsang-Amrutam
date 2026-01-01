@@ -64,9 +64,10 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
     setAttachedFile(null);
     setIsTyping(true);
 
+    // Prepare history for the service
     const history = messages.map(m => ({
         role: m.role,
-        parts: [{ text: m.text }]
+        text: m.text
     }));
 
     const filePart: FilePart | undefined = currentFile ? {
@@ -75,11 +76,11 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
     } : undefined;
 
     try {
-      const response = await geminiService.getSpiritualGuidance(queryInput || "Please provide context.", language, history, filePart);
-      setMessages(prev => [...prev, { role: 'model', text: response || 'No response received.' }]);
-    } catch (err) {
+      const response = await geminiService.getSpiritualGuidance(queryInput || "Please provide spiritual guidance.", language, history, filePart);
+      setMessages(prev => [...prev, { role: 'model', text: response }]);
+    } catch (err: any) {
       console.error("Chat interface error:", err);
-      setMessages(prev => [...prev, { role: 'model', text: "Service temporarily unavailable. Please verify your internet connection and API configuration." }]);
+      setMessages(prev => [...prev, { role: 'model', text: `Connection Issue: ${err.message || "Please check your network."}` }]);
     } finally {
       setIsTyping(false);
     }
@@ -117,7 +118,7 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
         </div>
         <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10 shadow-sm">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-[10px] text-white font-bold uppercase tracking-tighter">Live Support</span>
+          <span className="text-[10px] text-white font-bold uppercase tracking-tighter">Archives Connected</span>
         </div>
       </div>
 

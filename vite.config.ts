@@ -16,7 +16,6 @@ export default defineConfig({
       },
     },
   },
-  define: {
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
-  }
+  // Removed define block for process.env.API_KEY to allow the runtime environment 
+  // to provide the key directly, avoiding "undefined" stringification.
 });
