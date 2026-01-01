@@ -14,12 +14,16 @@ This is the supreme spiritual text of the Swaminarayan Sampraday.
 It contains 273 discourses recorded by four senior paramhansas.
 `;
 
-// Initialize the AI client directly using the environment variable as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export class GeminiService {
+  private getClient() {
+    // We initialize the client inside methods to avoid top-level ReferenceErrors 
+    // and to ensure we get the latest key if it's injected dynamically.
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  }
+
   async generateCommunityContent(language: Language) {
     try {
+      const ai = this.getClient();
       const target = language === Language.GU ? "Gujarati" : "English";
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -48,6 +52,8 @@ export class GeminiService {
 
   async getSpiritualGuidance(prompt: string, language: Language, history: any[] = [], attachedFile?: FilePart) {
     try {
+      const ai = this.getClient();
+      
       // Correctly build user parts
       const userParts: any[] = [{ text: prompt }];
       if (attachedFile) {
@@ -60,7 +66,6 @@ export class GeminiService {
       }
 
       // Gemini API history MUST start with a 'user' role message.
-      // We filter out any initial 'model' greetings from the history array.
       const validHistory = history.filter((msg, index) => {
         if (index === 0 && msg.role === 'model') return false;
         return true;
@@ -78,12 +83,16 @@ export class GeminiService {
       return response.text || "I apologize, but I couldn't generate a spiritual response at this moment.";
     } catch (error) {
       console.error("Gemini API Error:", error);
-      return "The connection to the spiritual archives was interrupted. Please ensure your environment is correctly configured.";
+      if (error instanceof Error && error.message.includes('API_KEY')) {
+        return "Configuration Error: The API key is missing or invalid. Please check your environment variables.";
+      }
+      return "The connection to the spiritual archives was interrupted. Please check your network or try again later.";
     }
   }
 
   async transliterateBhajan(text: string, targetScript: 'Latin' | 'Gujarati') {
     try {
+      const ai = this.getClient();
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Transliterate the following text into ${targetScript} script: ${text}`,

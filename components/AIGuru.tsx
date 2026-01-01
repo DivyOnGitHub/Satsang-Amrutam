@@ -12,7 +12,7 @@ interface AIGuruProps {
 
 const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
   const t = translations[language];
-  const [messages, setMessages] = React.useState<ChatMessage[]>([
+  const [messages, setMessages] = React.useState<ChatMessage[]>(() => [
     { role: 'model', text: t.aiInitialMsg }
   ]);
   const [input, setInput] = React.useState('');
@@ -58,6 +58,8 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
 
     const userMsg: ChatMessage = { role: 'user', text: userMsgText };
     setMessages(prev => [...prev, userMsg]);
+    
+    const queryInput = input;
     setInput('');
     setAttachedFile(null);
     setIsTyping(true);
@@ -73,10 +75,11 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
     } : undefined;
 
     try {
-      const response = await geminiService.getSpiritualGuidance(input || "Please summarize the core teaching.", language, history, filePart);
-      setMessages(prev => [...prev, { role: 'model', text: response || '' }]);
+      const response = await geminiService.getSpiritualGuidance(queryInput || "Please provide context.", language, history, filePart);
+      setMessages(prev => [...prev, { role: 'model', text: response || 'No response received.' }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'model', text: "Error: Could not connect to the API. Please check your network or API settings." }]);
+      console.error("Chat interface error:", err);
+      setMessages(prev => [...prev, { role: 'model', text: "Service temporarily unavailable. Please verify your internet connection and API configuration." }]);
     } finally {
       setIsTyping(false);
     }
@@ -103,7 +106,7 @@ const AIGuru: React.FC<AIGuruProps> = ({ role, language }) => {
   };
 
   return (
-    <div className="flex flex-col h-[75vh] max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-orange-100">
+    <div className="flex flex-col h-[75vh] max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-orange-100 animate-fadeIn">
       <div className="bg-gradient-to-r from-orange-950 via-orange-900 to-orange-800 p-6 text-white flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Logo size="md" className="ring-2 ring-white/20" />
