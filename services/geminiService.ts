@@ -16,11 +16,9 @@ It contains 273 discourses recorded by four senior paramhansas.
 
 export class GeminiService {
   private getClient() {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey || apiKey === "undefined" || apiKey.length < 5) {
-      throw new Error("API_KEY_MISSING");
-    }
-    return new GoogleGenAI({ apiKey });
+    // Standard initialization per guidelines.
+    // Assuming process.env.API_KEY is provided by the environment.
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   async generateCommunityContent(language: Language) {
@@ -80,23 +78,13 @@ export class GeminiService {
         }
       }
 
-      // If after filtering we ended on a 'user' message, the next turn (which we are sending now)
-      // would be a 'user' message again, which is invalid. 
-      // We must ensure the last message in history is 'model' or history is empty.
+      // Ensure history ends on 'model' to alternate with the new 'user' message
       if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
-        // We can't have two user messages in a row.
-        // If the last history item was user, we might need to remove it or wrap it.
-        // For simplicity, if history ends in 'user', we just take the messages up to the last 'model'.
-        const lastModelIndex = validHistory.map(m => m.role).lastIndexOf('model');
-        if (lastModelIndex !== -1) {
-          validHistory = validHistory.slice(0, lastModelIndex + 1);
-        } else {
-          validHistory = [];
-        }
+        validHistory.pop();
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview', // Switched to Flash for better region availability
+        model: 'gemini-3-flash-preview', 
         contents: [...validHistory, { role: 'user', parts: userParts }],
         config: {
           systemInstruction: `Satsang Saar AI. You are the Librarian of the Vachanãmrut. Use Vachanãmrut authority. ${VACHANAMRUT_CORE} Provide guidance based on these 273 discourses. Always use precise citations like [Gadhada I-1] or [Vartal 11].`,
@@ -108,23 +96,20 @@ export class GeminiService {
     } catch (error: any) {
       console.error("Gemini API Error Detail:", error);
       
-      if (error.message === "API_KEY_MISSING") {
-        return "The API Key is missing. Please ensure 'API_KEY' is set in your Vercel Environment Variables.";
-      }
-
-      // Check for common API errors
       const errorMsg = error?.message || "";
+      
+      // Handle known API response errors gracefully
       if (errorMsg.includes("403") || errorMsg.includes("permission")) {
-        return "Access Denied (403): Your API Key does not have permission to use this model or region.";
+        return "Access Denied: The spiritual archives are currently restricted in this region or for this key.";
       }
       if (errorMsg.includes("429") || errorMsg.includes("quota")) {
-        return "Too Many Requests (429): The spiritual archives are currently busy. Please wait a moment.";
+        return "The archives are currently receiving too many requests. Please pause for a moment.";
       }
-      if (errorMsg.includes("401") || errorMsg.includes("key")) {
-        return "Invalid API Key (401): Please verify the key in your settings.";
+      if (errorMsg.includes("401") || errorMsg.includes("API key not valid")) {
+        return "The spiritual connection is unverified. Please check the environment configuration (API Key).";
       }
 
-      return `Connection Error: ${errorMsg || "The spiritual archives are currently unreachable. Please check your network."}`;
+      return "I am currently unable to consult the archives. Please verify your connection and try again.";
     }
   }
 
