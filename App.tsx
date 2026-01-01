@@ -39,6 +39,7 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = React.useState<string | null>(null);
 
   const t = translations[language];
+  const guT = translations[Language.GU];
 
   React.useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(media));
@@ -126,8 +127,8 @@ const App: React.FC = () => {
              <img src="https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=2070&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-50" alt="Sacred Background" />
              <div className="relative z-20 h-full flex flex-col items-center justify-center text-center p-8">
                <Logo size="xl" className="mb-8 animate-float" />
-               <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 drop-shadow-lg">{t.heroTitle}</h2>
-               <p className="text-orange-100 max-w-2xl font-serif italic text-lg md:text-xl leading-relaxed opacity-90">{t.heroSubtitle}</p>
+               <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 drop-shadow-lg">{guT.heroTitle}</h2>
+               <p className="text-orange-100 max-w-2xl font-serif italic text-lg md:text-xl leading-relaxed opacity-90">{guT.heroSubtitle}</p>
              </div>
           </section>
 
