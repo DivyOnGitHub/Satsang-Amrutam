@@ -16,9 +16,9 @@ It contains 273 discourses recorded by four senior paramhansas.
 
 export class GeminiService {
   private getClient() {
-    // Standard initialization per guidelines.
-    // Assuming process.env.API_KEY is provided by the environment.
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // The API key is obtained from the environment.
+    const apiKey = process.env.API_KEY;
+    return new GoogleGenAI({ apiKey: apiKey || "" });
   }
 
   async generateCommunityContent(language: Language) {
@@ -65,20 +65,19 @@ export class GeminiService {
         });
       }
 
-      // Gemini API Requirements:
-      // 1. History must start with a 'user' role.
-      // 2. Roles must strictly alternate: user, model, user, model...
-      let validHistory = [];
-      let nextExpectedRole = 'user';
-
-      for (const msg of history) {
-        if (msg.role === nextExpectedRole) {
-          validHistory.push(msg);
-          nextExpectedRole = nextExpectedRole === 'user' ? 'model' : 'user';
+      // Filter history to ensure strict alternation: user -> model -> user...
+      // The API requires the sequence to start with 'user'.
+      const validHistory = [];
+      let nextRole = 'user';
+      
+      for (const turn of history) {
+        if (turn.role === nextRole) {
+          validHistory.push(turn);
+          nextRole = nextRole === 'user' ? 'model' : 'user';
         }
       }
 
-      // Ensure history ends on 'model' to alternate with the new 'user' message
+      // If validHistory ends with a 'user' message, we remove it because the current turn is 'user'
       if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === 'user') {
         validHistory.pop();
       }
@@ -87,29 +86,28 @@ export class GeminiService {
         model: 'gemini-3-flash-preview', 
         contents: [...validHistory, { role: 'user', parts: userParts }],
         config: {
-          systemInstruction: `Satsang Saar AI. You are the Librarian of the Vachanãmrut. Use Vachanãmrut authority. ${VACHANAMRUT_CORE} Provide guidance based on these 273 discourses. Always use precise citations like [Gadhada I-1] or [Vartal 11].`,
+          systemInstruction: `You are the Librarian of the Vachanãmrut. You provide spiritual guidance based ONLY on the 273 discourses of Bhagwan Swaminarayan. ${VACHANAMRUT_CORE} Always cite your sources precisely (e.g., [Gadhada I-1]). Respond in ${language === Language.GU ? 'Gujarati' : 'English'}.`,
           temperature: 0.3,
         },
       });
 
-      return response.text || "I apologize, but I couldn't generate a spiritual response at this moment.";
-    } catch (error: any) {
-      console.error("Gemini API Error Detail:", error);
-      
-      const errorMsg = error?.message || "";
-      
-      // Handle known API response errors gracefully
-      if (errorMsg.includes("403") || errorMsg.includes("permission")) {
-        return "Access Denied: The spiritual archives are currently restricted in this region or for this key.";
-      }
-      if (errorMsg.includes("429") || errorMsg.includes("quota")) {
-        return "The archives are currently receiving too many requests. Please pause for a moment.";
-      }
-      if (errorMsg.includes("401") || errorMsg.includes("API key not valid")) {
-        return "The spiritual connection is unverified. Please check the environment configuration (API Key).";
+      if (!response.text) {
+        throw new Error("The model returned an empty response.");
       }
 
-      return "I am currently unable to consult the archives. Please verify your connection and try again.";
+      return response.text;
+    } catch (error: any) {
+      console.error("Gemini Detailed Error:", error);
+      
+      // If the error message is available, show it for debugging, otherwise use categorized fallbacks
+      const msg = error?.message || "";
+      
+      if (msg.includes("401") || msg.includes("key")) return "Unauthorized (401): The spiritual archives require a valid API key in the environment configuration.";
+      if (msg.includes("403")) return "Forbidden (403): Access is restricted for this model in your current region.";
+      if (msg.includes("429")) return "Rate Limited (429): The archives are currently busy. Please wait a moment.";
+      if (msg.includes("500")) return "Server Error (500): The Google AI service is experiencing internal issues.";
+      
+      return `Connection Issue: ${msg || "Consultation interrupted. Please verify your network and check the browser console for details."}`;
     }
   }
 

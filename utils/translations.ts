@@ -1,3 +1,4 @@
+
 import { Language } from '../types';
 
 export const translations = {
@@ -16,8 +17,8 @@ export const translations = {
     viewAll: "View All",
     upcomingNearYou: "Upcoming Near You",
     seekGuidance: "Seek Guidance",
-    heroTitle: "Embrace the Divine Vachan",
-    heroSubtitle: '"The Vachanãmrut is amrut in the form of words of Bhagwãn Swãminãrãyan."',
+    heroTitle: "દૈવી વચનને સ્વીકારો",
+    heroSubtitle: '"વચનામૃત એ ભગવાન સ્વામિનારાયણના શબ્દોના રૂપમાં અમૃત છે."',
     adminUpload: "Add Bhajan",
     uploadedBy: "By",
     spiritualGatherings: "Satsang Gatherings",
